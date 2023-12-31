@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=Radeon Profile
+GenericName=Radeon GPU Control panel
+GenericName[hu]=Radeon GPU kontroll panel
+Comment=Monitor Radeon GPU parameters and switch power profiles
+Comment[hu]=Radeon GPU paraméterek monitorja és teljesítményprofilok váltása
+Exec=radeon-profile
+Icon=radeon-profile
+Terminal=false
+Type=Application
+Categories=System;Monitor;HardwareSettings;TrayIcon;
+StartupNotify=false
+
