@@ -25,27 +25,11 @@ For full functionality:
 * xdriinfo - driver info
 * xrandr - connected displays
 
-
-# Build
-
+# Install on blackPanther OS
 ```
-git clone https://github.com/marazmista/radeon-profile.git
-cd radeon-profile/radeon-profile
-qmake
-make 
+installing radeon-profile
 ```
 
-The resulting binary is `./target/radeon-profile`
-
-For Ubuntu 17.04, qt5-charts isn't available:
-* Use `qtchooser -l` to list available profiles
-* Use `qmake -qt=[profile from qtchooser]` to specify Qt root or download and install a Qt bundle from https://www.qt.io/download-open-source/#section-2
-* Make a `qt5opt.conf` in `/usr/lib/x86_64-linux-gnu/qtchooser/` containing:
-
-```
-/opt/Qt5.9.1/5.9.1/gcc_64/bin
-/opt/Qt5.9.1/5.9.1
-```
 
 # Installation
 ### Ubuntu 
@@ -66,6 +50,26 @@ sudo add-apt-repository ppa:radeon-profile/stable
 sudo apt update
 sudo apt install radeon-profile
 ```
+# Build from Source
+
+```
+git clone https://github.com/blackPantherOS/radeon-profile-qt6.git
+cd radeon-profile/radeon-profile
+qmake-qt6
+make 
+```
+
+The resulting binary is `./target/radeon-profile`
+
+For Ubuntu 2x.xx, qt5-charts isn't available:
+* Use `qtchooser -l` to list available profiles
+* Use `qmake -qt=[profile from qtchooser]` to specify Qt root or download and install a Qt bundle from https://www.qt.io/download-open-source/#section-2
+* Make a `qt5opt.conf` in `/usr/lib/x86_64-linux-gnu/qtchooser/` containing:
+
+```
+/opt/Qt5.9.1/5.9.1/gcc_64/bin
+/opt/Qt5.9.1/5.9.1
+```
 ### Arch Linux
 * AUR package: https://aur.archlinux.org/packages/radeon-profile-git/
 * System daemon AUR package: https://aur.archlinux.org/packages/radeon-profile-daemon-git/
@@ -73,11 +77,11 @@ sudo apt install radeon-profile
 
 * System daemon: https://github.com/marazmista/radeon-profile-daemon
 * Sort of official thread: http://phoronix.com/forums/showthread.php?83602-radeon-profile-tool-for-changing-profiles-and-monitoring-some-GPU-parameters
-* Icon: http://proicons.deviantart.com/art/Graphics-Cards-Icons-H1-Pack-161178339
+* New icon created by Charles K Barcza <kbarcza@blackpanther.hu> 
 
 # Screenshot
 
 Main screen
-![Main screen](https://i.imgur.com/Z880p47.png)
+![Main screen](radeon-profile/extra/radeon-profile-qt6.png)
 
 [More screenshots](http://imgur.com/a/DMRr9)
