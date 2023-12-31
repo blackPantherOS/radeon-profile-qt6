@@ -9,7 +9,9 @@
 #include "globalStuff.h"
 #include "ui_pieprogressbar.h"
 
+#if QT_VERSION <= 0x060000
 using namespace QtCharts;
+#endif
 
 namespace Ui {
 class PieProgressBar;
@@ -95,7 +97,8 @@ protected:
 
         QPalette p = this->palette();
         setAutoFillBackground(true);
-        p.setColor(QPalette::Background, Qt::black);
+        //p.setColor(QPalette::Background, Qt::black);
+        p.setColor(QPalette::Window, Qt::black);
 
         data->setPieStartAngle(-250);
         data->setPieEndAngle(90);

@@ -8,8 +8,11 @@
 #include <QMenu>
 #include <QDir>
 #include <QTreeWidgetItem>
-#include <QDesktopWidget>
 #include <QRect>
+#include <QGuiApplication>
+#include <QScreen>
+#include <QString>
+#include <QPalette>
 
 QString getConfigPath() {
     return QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/radeon-profile";
@@ -310,6 +313,7 @@ void radeon_profile::loadConfig() {
     dcomm.setConnectionConfirmationMethod(static_cast<DaemonComm::ConfirmationMehtod>(ui->combo_connConfirmMethod->currentIndex()));
 
     // apply some settings to ui on start //
+    /*
     if (ui->cb_saveWindowGeometry->isChecked())
         this->setGeometry(settings.value("windowGeometry").toRect());
     else {
@@ -319,6 +323,25 @@ void radeon_profile::loadConfig() {
                          desktopSize.height() / 4, // Top offset
                          desktopSize.width() / 2, // Width
                          desktopSize.height() / 2); // Height
+    } */
+
+
+    if (ui->cb_saveWindowGeometry->isChecked()) {
+        this->setGeometry(settings.value("windowGeometry").toRect());
+    } else {
+        // Set up the size at 1/2 of the primary screen size, centered
+        QList<QScreen*> screens = QGuiApplication::screens();
+        if (!screens.isEmpty()) {
+            QScreen* primaryScreen = screens.at(0);
+            QRect primaryScreenGeometry = primaryScreen->geometry();
+    
+            this->setGeometry(
+            primaryScreenGeometry.width() / 4,  // Left offset
+                primaryScreenGeometry.height() / 4, // Top offset
+                primaryScreenGeometry.width() / 2,  // Width
+                primaryScreenGeometry.height() / 2  // Height
+            );
+        }
     }
 
     timer->setInterval(ui->spin_timerInterval->value() * 1000);
@@ -379,13 +402,15 @@ void radeon_profile::loadConfig() {
     if (fanProfiles.count() == 0)
         createDefaultFanProfile();
 
-    topbarManager.setDefaultForeground(QWidget::palette().foreground().color());
+    topbarManager.setDefaultForeground(QWidget::palette().color(QPalette::WindowText));
+
 }
 
 void radeon_profile::loadRpevent(const QXmlStreamReader &xml) {
     RPEvent rpe;
     rpe.name = xml.attributes().value("name").toString();
-    rpe.enabled = (xml.attributes().value("enabled") == "1");
+    rpe.enabled = (xml.attributes().value("enabled") == QLatin1String("1"));
+    //rpe.enabled = (xml.attributes().value("enabled") == "1");
     rpe.type = static_cast<RPEventType>(xml.attributes().value("tiggerType").toInt());
     rpe.activationBinary = xml.attributes().value("activationBinary").toString();
     rpe.activationTemperature = xml.attributes().value("activationTemperature").toInt();
@@ -422,9 +447,11 @@ void radeon_profile::loadPlotSchemas(QXmlStreamReader &xml) {
     while (xml.readNext()) {
         if (xml.name().toString() == "axis") {
 
-            if (xml.attributes().value("align") == "left")
+            //if (xml.attributes().value("align") == "left")
+            if (xml.attributes().value("align") == QLatin1String("left"))
                 loadPlotAxisSchema(xml, pds.left);
-            else if (xml.attributes().value("align") == "right")
+            //else if (xml.attributes().value("align") == "right")
+            else if (xml.attributes().value("align") == QLatin1String("right"))
                 loadPlotAxisSchema(xml, pds.right);
 
         }
@@ -437,9 +464,12 @@ void radeon_profile::loadPlotSchemas(QXmlStreamReader &xml) {
 
         }
 
-        if (xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "plot") {
+        
+        if (xml.tokenType() == QXmlStreamReader::EndElement && QString(xml.name().toString()) == "plot") {
             break;
+            
         }
+
     }
 
     plotManager.addSchema(pds);
@@ -482,10 +512,15 @@ void radeon_profile::loadFanProfile(QXmlStreamReader &xml) {
             fps.insert(xml.attributes().value("temperature").toString().toInt(),
                        xml.attributes().value("speed").toString().toInt());
 
-        if (xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "fanProfile") {
+        /* if (xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "fanProfile") {
+            fanProfiles.insert(fpName, fps);
+            return;
+        } */
+        if (xml.tokenType() == QXmlStreamReader::EndElement && xml.name().toString() == QLatin1String("fanProfile")) {
             fanProfiles.insert(fpName, fps);
             return;
         }
+
     }
 }
 
@@ -508,6 +543,7 @@ void radeon_profile::loadOcProfile(QXmlStreamReader &xml) {
                                       xml.attributes().value("voltage").toUInt()));
         }
 
+	/*
         if (xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "table") {
             ocp.tables.insert(tableName, table);
             table.clear();
@@ -517,6 +553,18 @@ void radeon_profile::loadOcProfile(QXmlStreamReader &xml) {
         if (xml.tokenType() == QXmlStreamReader::EndElement && xml.name() == "ocProfile") {
             ocProfiles.insert(name, ocp);
             return;
+        } */
+ 
+        if (xml.tokenType() == QXmlStreamReader::EndElement && xml.name().toString() == "table") {
+            ocp.tables.insert(tableName, table);
+            table.clear();
+            tableName.clear();
         }
+
+        if (xml.tokenType() == QXmlStreamReader::EndElement && xml.name().toString() == "ocProfile") {
+            ocProfiles.insert(name, ocp);
+            return;
+        }
+
     }
 }

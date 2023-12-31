@@ -9,7 +9,8 @@
 
 #include "globalStuff.h"
 #include "dxorg.h"
-#include <QtConcurrent/QtConcurrent>
+#include "QtCore/qfuturewatcher.h"
+//#include <QtConcurrent/QtConcurrent>
 
 class gpu : public QObject
 {

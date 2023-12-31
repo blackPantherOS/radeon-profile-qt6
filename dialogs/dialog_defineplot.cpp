@@ -53,7 +53,9 @@ void Dialog_definePlot::loadListFromSchema(QTreeWidget *list, QMap<ValueID, QCol
             continue;
 
         list->topLevelItem(i)->setCheckState(0, Qt::Checked);
-        list->topLevelItem(i)->setBackgroundColor(1, selected.value(listRelationToValueID.value(i)));
+        //list->topLevelItem(i)->setBackgroundColor(1, selected.value(listRelationToValueID.value(i)));
+        list->topLevelItem(i)->setBackground(1, QBrush(selected.value(listRelationToValueID.value(i))));
+
     }
 }
 
@@ -108,29 +110,35 @@ QColor Dialog_definePlot::getColor(const QColor &c) {
 void Dialog_definePlot::on_list_leftData_itemDoubleClicked(QTreeWidgetItem *item, int column)
 {
     Q_UNUSED(column)
-    item->setBackgroundColor(1,getColor(item->backgroundColor(1)));
+    //item->setBackgroundColor(1,getColor(item->backgroundColor(1)));
+    item->setBackground(1, item->background(1));
 }
 
 void Dialog_definePlot::on_btn_setBackground_clicked()
 {
-    ui->frame_background->setPalette(QPalette(getColor(ui->frame_background->palette().background().color())));
+    //ui->frame_background->setPalette(QPalette(getColor(ui->frame_background->palette().background().color())));
+    ui->frame_background->setPalette(QPalette(getColor(ui->frame_background->palette().brush(QPalette::Window).color())));
 
 }
 
 void Dialog_definePlot::on_btn_leftScaleColor_clicked()
 {
-    ui->frame_leftGridColor->setPalette(QPalette(getColor(ui->frame_leftGridColor->palette().background().color())));
+    //ui->frame_leftGridColor->setPalette(QPalette(getColor(ui->frame_leftGridColor->palette().background().color())));
+    ui->frame_leftGridColor->setPalette(QPalette(getColor(ui->frame_leftGridColor->palette().brush(QPalette::Window).color())));
+
 }
 
 void Dialog_definePlot::on_btn_rightScaleColor_clicked()
 {
-    ui->frame_rightGridColor->setPalette(QPalette(getColor(ui->frame_rightGridColor->palette().background().color())));
+    //ui->frame_rightGridColor->setPalette(QPalette(getColor(ui->frame_rightGridColor->palette().background().color())));
+    ui->frame_rightGridColor->setPalette(QPalette(getColor(ui->frame_rightGridColor->palette().brush(QPalette::Window).color())));
 }
 
 void Dialog_definePlot::on_list_rightData_itemDoubleClicked(QTreeWidgetItem *item, int column)
 {
     Q_UNUSED(column)
-    item->setBackgroundColor(1,getColor(item->backgroundColor(1)));
+    //item->setBackgroundColor(1,getColor(item->backgroundColor(1)));
+    item->setBackground(1, item->background(1));
 }
 
 PlotDefinitionSchema Dialog_definePlot::getCreatedSchema() {
@@ -160,7 +168,9 @@ void Dialog_definePlot::addSelectedItemToSchema(int itemIndex, QTreeWidgetItem *
             QMessageBox::information(this, "Info", tr("Values with different units cannot be selected for the same scale"));
             item->setCheckState(0, Qt::Unchecked);
         } else
-            schemaDataList.insert(listRelationToValueID.value(itemIndex), item->backgroundColor(1));
+            //schemaDataList.insert(listRelationToValueID.value(itemIndex), item->background(1));
+            schemaDataList.insert(listRelationToValueID.value(itemIndex), item->background(1).color());
+
     }
 }
 
@@ -189,7 +199,9 @@ void Dialog_definePlot::on_btn_save_clicked()
         return;
     }
 
-    schema.background = ui->frame_background->palette().background().color();
+    //schema.background = ui->frame_background->palette().background().color();
+    schema.background = ui->frame_background->palette().color(QPalette::Window);
+
     schema.name = ui->line_name->text();
     schema.left.enabled = ui->cb_enableLeftScale->isChecked();
     schema.right.enabled = ui->cb_enableRightScale->isChecked();
@@ -207,13 +219,22 @@ void Dialog_definePlot::on_btn_save_clicked()
     else
         schema.right.enabled = false;
 
-    schema.left.penGrid = QPen(ui->frame_leftGridColor->palette().background().color(),
-                              ui->slider_thickLeft->value(),
-                              static_cast<Qt::PenStyle>(ui->combo_leftScaleStyle->currentData().toInt()));
+    //schema.left.penGrid = QPen(ui->frame_leftGridColor->palette().background().color(),
+    //                          ui->slider_thickLeft->value(),
+    //                          static_cast<Qt::PenStyle>(ui->combo_leftScaleStyle->currentData().toInt()));
+    
+    schema.left.penGrid = QPen(ui->frame_leftGridColor->palette().color(QPalette::Window),
+                           ui->slider_thickLeft->value(),
+                           static_cast<Qt::PenStyle>(ui->combo_leftScaleStyle->currentData().toInt()));
 
-    schema.right.penGrid = QPen(ui->frame_rightGridColor->palette().background().color(),
-                              ui->slider_thickRight->value(),
-                              static_cast<Qt::PenStyle>(ui->combo_rightScaleStyle->currentData().toInt()));
+    //schema.right.penGrid = QPen(ui->frame_rightGridColor->palette().background().color(),
+    //                          ui->slider_thickRight->value(),
+    //                          static_cast<Qt::PenStyle>(ui->combo_rightScaleStyle->currentData().toInt()));
+
+    schema.right.penGrid = QPen(ui->frame_rightGridColor->palette().color(QPalette::Window),
+                           ui->slider_thickRight->value(),
+                           static_cast<Qt::PenStyle>(ui->combo_rightScaleStyle->currentData().toInt()));
+
 
     schema.enabled = true;
 

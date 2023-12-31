@@ -6,7 +6,7 @@
 #include <cmath>
 #include <QFile>
 #include <QDebug>
-#include <QtConcurrent/QtConcurrent>
+//#include <QtConcurrent/QtConcurrent>
 
 extern "C" {
 #include <X11/extensions/Xrandr.h>
@@ -40,8 +40,10 @@ static const char * pnpIdFiles [PNP_ID_FILE_COUNT] = {
     "/usr/share/hwdata/pnp.ids"
 };
 
+
+/* OLD
 void gpu::detectCards() {
-    QStringList out = globalStuff::grabSystemInfo("ls /sys/class/drm/").filter(QRegExp("card\\d$"));
+    QStringList out = globalStuff::grabSystemInfo("ls /sys/class/drm/").filter(QRegularExpression("card\\d$"));
 
     for (int i = 0; i < out.count(); i++) {
         QFile f("/sys/class/drm/"+out[i]+"/device/uevent");
@@ -52,7 +54,7 @@ void gpu::detectCards() {
         QStringList ueventContents = QString(f.readAll()).split('\n');
         f.close();
 
-        int driverIdx = ueventContents.indexOf(QRegExp("DRIVER=[radeon|amdgpu]+"));
+        int driverIdx = ueventContents.indexOf(QRegularExpression("DRIVER=[radeon|amdgpu]+"));
         if (driverIdx == -1)
             continue;
 
@@ -67,7 +69,7 @@ void gpu::detectCards() {
 
         gsi.sysName = gsi.name = out[i];
 
-        int pciIdx = ueventContents.indexOf(QRegExp("PCI_SLOT_NAME.+"));
+        int pciIdx = ueventContents.indexOf(QRegularExpression("PCI_SLOT_NAME.+"));
         if (pciIdx != -1)
             gsi.name = globalStuff::grabSystemInfo("lspci -s " + ueventContents[pciIdx].split('=')[1])[0].split(':')[2].trimmed();
 
@@ -75,6 +77,75 @@ void gpu::detectCards() {
 
         qDebug() << "Card detected:\n module: " << gsi.driverModuleString <<  "\n sysName(path): "  << gsi.sysName  << "\n name: " <<  gsi.name;
     }
+} 
+*/
+
+void gpu::detectCards() {
+    qDebug() << "Start GPU Detection";
+    
+    QStringList out = globalStuff::grabSystemInfo("ls /sys/class/drm/").filter(QRegularExpression("card\\d$"));
+    qDebug() << "Detected DRM Cards:" << out;
+
+    for (int i = 0; i < out.count(); i++) {
+        qDebug() << "Processing Card:" << out[i];
+
+        QFile f("/sys/class/drm/" + out[i] + "/device/uevent");
+
+        if (!f.open(QIODevice::ReadOnly)) {
+            qDebug() << "Failed to open uevent file for" << out[i];
+            continue;
+        }
+
+        QStringList ueventContents = QString(f.readAll()).split('\n');
+        f.close();
+
+        int driverIdx = -1;
+        for (int j = 0; j < ueventContents.size(); j++) {
+            QRegularExpressionMatch match = QRegularExpression("DRIVER=(radeon|amdgpu)").match(ueventContents[j]);
+            if (match.hasMatch()) {
+                driverIdx = j;
+                break;
+            }
+        }
+
+        if (driverIdx == -1) {
+            qDebug() << "Driver information not found for" << out[i];
+            continue;
+        }
+
+        GPUSysInfo gsi;
+        gsi.driverModuleString = QRegularExpression("DRIVER=(radeon|amdgpu)").match(ueventContents[driverIdx]).captured(1);
+        qDebug() << "Driver Module for" << out[i] << ":" << gsi.driverModuleString;
+
+        if (gsi.driverModuleString == "radeon")
+            gsi.module = DriverModule::RADEON;
+        else if (gsi.driverModuleString == "amdgpu")
+            gsi.module = DriverModule::AMDGPU;
+        else
+            gsi.module = DriverModule::MODULE_UNKNOWN;
+
+        gsi.sysName = gsi.name = out[i];
+
+        int pciIdx = -1;
+        for (int j = 0; j < ueventContents.size(); j++) {
+            QRegularExpressionMatch match = QRegularExpression("PCI_SLOT_NAME=.+").match(ueventContents[j]);
+            if (match.hasMatch()) {
+                pciIdx = j;
+                break;
+            }
+        }
+
+        if (pciIdx != -1) {
+            gsi.name = globalStuff::grabSystemInfo("lspci -s " + QRegularExpression("PCI_SLOT_NAME=(.+)").match(ueventContents[pciIdx]).captured(1))[0].split(':')[2].trimmed();
+            qDebug() << "PCI Name for" << out[i] << ":" << gsi.name;
+        }
+
+        gpuList.append(gsi);
+
+        qDebug() << "Card detected:\n module:" << gsi.driverModuleString << "\n sysName(path):"  << gsi.sysName  << "\n name:" <<  gsi.name;
+    }
+
+    qDebug() << "GPU Detection Completed";
 }
 
 bool gpu::initialize(const dXorg::InitializationConfig &config) {
@@ -213,10 +284,34 @@ void gpu::getTemperature() {
         gpuData[ValueID::TEMPERATURE_MAX].setValue(gpuData.value(ValueID::TEMPERATURE_CURRENT).value);
 }
 
-void gpu::getGpuUsage() {
+/* void gpu::getGpuUsage() {
 
     // getting gpu usage seems to be heavy and cause ui lag, so it is done in another thread
     futureGpuUsage.setFuture(QtConcurrent::run(driverHandler,&dXorg::getGPUUsage));
+} */
+
+void gpu::getGpuUsage()
+{
+    // Create a QRunnable object that calls driverHandler->getGPUUsage()
+    class GetGpuUsageRunnable : public QRunnable
+    {
+    public:
+        GetGpuUsageRunnable(dXorg *driverHandler) : m_driverHandler(driverHandler) {}
+
+        void run() override
+        {
+            m_driverHandler->getGPUUsage();
+        }
+
+    private:
+        dXorg *m_driverHandler;
+    };
+
+    // Create an instance of the QRunnable
+    GetGpuUsageRunnable *runnable = new GetGpuUsageRunnable(driverHandler);
+
+    // Use the QThreadPool to run the QRunnable
+    QThreadPool::globalInstance()->start(runnable);
 }
 
 QList<QTreeWidgetItem *> gpu::getModuleInfo() const {
@@ -234,11 +329,11 @@ QStringList gpu::getGLXInfo(QString gpuName) const {
         env.insert("DRI_PRIME",gpuName.at(gpuName.length()-1));
     QStringList driver = globalStuff::grabSystemInfo("xdriinfo",env).filter("Screen 0:",Qt::CaseInsensitive);
     if (!driver.isEmpty())  // because of segfault when no xdriinfo
-        data << "OpenGL driver:"+ driver.filter("Screen 0:",Qt::CaseInsensitive)[0].split(":",QString::SkipEmptyParts)[1];
+        data << "OpenGL driver:"+ driver.filter("Screen 0:",Qt::CaseInsensitive)[0].split(":",Qt::SkipEmptyParts)[1];
 
     data << "Kernel driver: " + gpuList.at(currentGpuIndex).driverModuleString;
 
-    data << globalStuff::grabSystemInfo("glxinfo -B",env).filter(QRegExp(".+"));
+    data << globalStuff::grabSystemInfo("glxinfo -B",env).filter(QRegularExpression(".+"));
 
     return data;
 }
@@ -458,24 +553,38 @@ QString translatePnpId(const QString pnpId){
 // Get the human-readable monitor name (vendor + model) from the EDID
 // See http://en.wikipedia.org/wiki/Extended_display_identification_data#EDID_1.3_data_format
 // For reference: https://github.com/KDE/libkscreen/blob/master/src/edid.cpp#L262-L286
-QString getMonitorName(const quint8 *EDID){
+
+QString getMonitorName(const quint8 *EDID) {
+
+    if (!EDID) {
+	// Segfault workaround
+        return "Unknown Monitor";
+    }
+
     QString monitorName;
-
-    //Get the vendor PnP ID
     QString pnpId, modelName;
-    pnpId[0] = 'A' + ((EDID[EDID_OFFSET_PNP_ID + 0] & 0x7c) / 4) - 1;
-    pnpId[1] = 'A' + ((EDID[EDID_OFFSET_PNP_ID + 0] & 0x3) * 8) + ((EDID[EDID_OFFSET_PNP_ID + 1] & 0xe0) / 32) - 1;
-    pnpId[2] = 'A' + (EDID[EDID_OFFSET_PNP_ID + 1] & 0x1f) - 1;
 
-    //Translate the PnP ID into human-readable vendor name
+    // PnpId kezelése
+    pnpId += QChar('A' + ((EDID[EDID_OFFSET_PNP_ID + 0] & 0x7c) / 4) - 1);
+    pnpId += QChar('A' + ((EDID[EDID_OFFSET_PNP_ID + 0] & 0x3) * 8) + ((EDID[EDID_OFFSET_PNP_ID + 1] & 0xe0) / 32) - 1);
+    pnpId += QChar('A' + (EDID[EDID_OFFSET_PNP_ID + 1] & 0x1f) - 1);
+
     monitorName.append(translatePnpId(pnpId));
 
-    // Get the model name
-    for (uint i = EDID_OFFSET_DATA_BLOCKS; i <= EDID_OFFSET_LAST_BLOCK; i += 18)
-        if(EDID[i+3] == EDID_DESCRIPTOR_PRODUCT_NAME)
-            modelName = QString::fromLocal8Bit((const char*)&EDID[i+5], 13).simplified();
+    // ModelName kezelése
+    for (uint i = EDID_OFFSET_DATA_BLOCKS; i <= EDID_OFFSET_LAST_BLOCK; i += 18) {
+        if (EDID[i + 3] == EDID_DESCRIPTOR_PRODUCT_NAME) {
+            modelName = QString::fromUtf8(reinterpret_cast<const char*>(&EDID[i + 5]), 13).simplified();
+        }
+    }
 
     monitorName.append(modelName.isEmpty() ? " - Model unknown" : ' ' + modelName);
+
+    // Ellenőrizzük, hogy a visszatérési érték üres vagy hibás-e
+    if (monitorName.isEmpty() || monitorName == " - Model unknown") {
+        // Az alapértelmezett monitor neve, ha valami nem megfelelő
+        return "Standard Monitor Type";
+    }
 
     return monitorName;
 }
@@ -563,7 +672,7 @@ QList<QTreeWidgetItem *> gpu::getCardConnectors() const {
     // Old implementation, parsing the output of xrandr
 
     QStringList out = globalStuff::grabSystemInfo("xrandr -q --verbose"), screens;
-    screens = out.filter(QRegExp("Screen\\s\\d"));
+    screens = out.filter(QRegularExpression("Screen\\s\\d"));
 
     for (int i = 0; i < screens.count(); i++) {
         QTreeWidgetItem *item = new QTreeWidgetItem(QStringList() << screens[i].split(':')[0] << screens[i].split(",")[1].remove(" current "));
@@ -581,7 +690,7 @@ QList<QTreeWidgetItem *> gpu::getCardConnectors() const {
                 QString monitor, edid = monitor = "";
 
                 // find EDID
-                for (int i = out.indexOf(QRegExp(".+EDID.+"))+1; i < out.count(); i++)
+                for (int i = out.indexOf(QRegularExpression(".+EDID.+"))+1; i < out.count(); i++)
                     if (out[i].startsWith(("\t\t")))
                         edid += out[i].remove("\t\t");
                     else
@@ -613,7 +722,8 @@ QList<QTreeWidgetItem *> gpu::getCardConnectors() const {
                     if (ok && found) {
                         // Hex -> String
                         for(i2 = 0; i2 < hex.size(); i2++) {
-                            monitor += QString(hex[i2].toInt(&ok, 16));
+                            //monitor += QString(hex[i2].toInt(&ok, 16));
+                            monitor += QChar(hex[i2].toInt(&ok, 16));
                             if(!ok)
                                 break;
                         }
@@ -863,22 +973,50 @@ QList<QTreeWidgetItem *> gpu::getCardConnectors() const {
 
                     // Parse the EDID to gather info
                     const quint8 header[8] = {0x00,0xff,0xff,0xff,0xff,0xff,0xff,0x00}; // Fixed EDID header
-                    if (memcmp(propertyRawData, header, 8) != 0) { // If the header is not valid
-                        qWarning() << screenIndex << '/' << outputInfo->name << ": can't parse EDID, invalid header";
-                    } else { // Valid header
-                        // Add the monitor name to the tree as value of the Output Item
-                        outputItem->setText(1, QObject::tr("Connected with ") + getMonitorName(propertyRawData));
 
-                        // Get the serial number
-                        // For reference: https://github.com/KDE/libkscreen/blob/master/src/edid.cpp#L288-L295
-                        quint32 serialNumber = propertyRawData[EDID_OFFSET_SERIAL_NUMBER];
-                        serialNumber += propertyRawData[EDID_OFFSET_SERIAL_NUMBER + 1] * 0x100;
-                        serialNumber += propertyRawData[EDID_OFFSET_SERIAL_NUMBER + 2] * 0x10000;
-                        serialNumber += propertyRawData[EDID_OFFSET_SERIAL_NUMBER + 3] * 0x1000000;
-                        QString serial = (serialNumber > 0) ? QString::number(serialNumber) : QObject::tr("Not available");
-                        addItemToTreeList(propertyListItem, QObject::tr("Serial number"), serial);
+                        //if (memcmp(propertyRawData, header, 8) != 0) { // If the header is not valid
+                    if (QByteArray(reinterpret_cast<const char*>(propertyRawData), 8).length() >= 8 && memcmp(propertyRawData, header, 8) != 0) {
+			qWarning() << screenIndex << '/' << outputInfo->name << ": can't parse EDID, invalid header";
+                    } else { // Valid header
+
+            		if (propertyRawData = nullptr) {
+		    
+		    	    qWarning() << "propertyRawData null!";
+
+                          } else {
+
+                    	    if (outputItem) {
+                    	    // Add the monitor name to the tree as value of the Output Item
+                		outputItem->setText(1, QObject::tr("Connected with ") + getMonitorName(propertyRawData));
+                		
+                		//if (propertyRawData.size() >= (EDID_OFFSET_SERIAL_NUMBER + 4)) {
+                		if (sizeof(propertyRawData) >= (EDID_OFFSET_SERIAL_NUMBER + 4)) {
+
+                    	        // Get the serial number
+                    	        // For reference: https://github.com/KDE/libkscreen/blob/master/src/edid.cpp#L288-L295
+                    	            quint32 serialNumber = propertyRawData[EDID_OFFSET_SERIAL_NUMBER];
+                        	    serialNumber += propertyRawData[EDID_OFFSET_SERIAL_NUMBER + 1] * 0x100;
+	                	    serialNumber += propertyRawData[EDID_OFFSET_SERIAL_NUMBER + 2] * 0x10000;
+        	            	    serialNumber += propertyRawData[EDID_OFFSET_SERIAL_NUMBER + 3] * 0x1000000;
+		            	    QString serial = (serialNumber > 0) ? QString::number(serialNumber) : QObject::tr("Not available");
+        	            	    addItemToTreeList(propertyListItem, QObject::tr("Serial number"), serial);
+                    	        
+                    	        } else {
+				    
+				    qWarning() << "propertyRawData too short !";
+				}
+                    	        
+                    	    } else {
+                    	    
+				qWarning() << "outputItem null!";
+			    }
+		    
+			}
+
                     }
+
                     //End of EDID
+                
                 } else { //Not EDID
                     // Translate the value ( translateProperty() will handle it)
                     QString propertyValue;

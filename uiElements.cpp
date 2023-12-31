@@ -190,7 +190,7 @@ void setupSeries(QLineSeries *series, const QColor color, const QString name, QV
 
 void setupChart(QChart *chart, bool legendVisable) {
     chart->setBackgroundRoundness(2);
-    chart->setMargins(QMargins(5,0,0,0));
+    chart->setContentsMargins(QMargins(5,0,0,0));
     chart->legend()->setVisible(legendVisable);
     chart->legend()->setLabelColor(Qt::white);
     chart->setBackgroundBrush(QBrush(Qt::darkGray));
@@ -213,8 +213,8 @@ void radeon_profile::createPowerProfileControlButtons(const PowerProfiles &modes
     }
 
     ui->widget_pmControls->setLayout(new QVBoxLayout(ui->widget_pmControls));
-    ui->widget_pmControls->layout()->setMargin(2);
-
+    //ui->widget_pmControls->layout()-> setContentsMargins(2);
+    ui->widget_pmControls->layout()->setContentsMargins(2, 2, 2, 2);
     qDebug() << "Creating power profiles control buttons";
 
     for (const auto &ppm : modes) {

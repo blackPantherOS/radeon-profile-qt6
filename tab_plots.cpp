@@ -8,7 +8,8 @@
 
 void radeon_profile::createPlots() {
     ui->widget_plots->setLayout(new QVBoxLayout(ui->widget_plots));
-    ui->widget_plots->layout()->setMargin(0);
+    //ui->widget_plots->layout()->setMargin(0);
+    ui->widget_plots->layout()->setContentsMargins(0, 0, 0, 0);
     ui->widget_plots->layout()->setSpacing(2);
 
     for (int i = 0; i < plotManager.schemas.count(); ++ i) {

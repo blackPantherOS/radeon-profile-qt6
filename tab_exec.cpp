@@ -6,7 +6,7 @@
 #include "execbin.h"
 
 #include <QFile>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QProcess>
@@ -124,7 +124,8 @@ void radeon_profile::on_list_variables_itemClicked(QListWidgetItem *item)
         return;
 
     // read variable possible values from file
-    QStringList values = envVars.filter(ui->list_variables->currentItem()->text())[0].remove(ui->list_variables->currentItem()->text()+"|").split("#",QString::SkipEmptyParts);
+    //QStringList values = envVars.filter(ui->list_variables->currentItem()->text())[0].remove(ui->list_variables->currentItem()->text()+"|").split("#",QString::SkipEmptyParts);
+    QStringList values = envVars.filter(ui->list_variables->currentItem()->text())[0].remove(ui->list_variables->currentItem()->text()+"|").split("#", Qt::SkipEmptyParts);
 
     // if value for this variable is 'user_input' display a window for input
     if (values[0] == "user_input") {
@@ -132,7 +133,8 @@ void radeon_profile::on_list_variables_itemClicked(QListWidgetItem *item)
         QString input = QInputDialog::getText(this, tr("Enter value"), tr("Enter valid value for ") + ui->list_variables->currentItem()->text(), QLineEdit::Normal,"",&ok);
 
         // look for this variable in list
-        int varIndex = selectedVariableVaules.indexOf(QRegExp(ui->list_variables->currentItem()->text()+".+",Qt::CaseInsensitive),0);
+        //int varIndex = selectedVariableVaules.indexOf(QRegularExpression(ui->list_variables->currentItem()->text()+".+",Qt::CaseInsensitive),0);
+	int varIndex = selectedVariableVaules.indexOf(QRegularExpression(ui->list_variables->currentItem()->text() + ".+", QRegularExpression::CaseInsensitiveOption),0);
         if (!input.isEmpty() && ok) {
             // if value was ok
             if (varIndex == -1)
@@ -155,7 +157,9 @@ void radeon_profile::on_list_variables_itemClicked(QListWidgetItem *item)
     // go through list from file and check if it is selected (exists in summary)
     for (int i= 0 ; i< values.count(); i++ ) {
         // look for selected variable in list with variables and its values
-        int varIndex = selectedVariableVaules.indexOf(QRegExp(ui->list_variables->currentItem()->text()+".+",Qt::CaseInsensitive),0);
+        //int varIndex = selectedVariableVaules.indexOf(QRegularExpression(ui->list_variables->currentItem()->text()+".+",Qt::CaseInsensitive),0);
+        //int varIndex = selectedVariableVaules.indexOf(QRegularExpression(ui->list_variables->currentItem()->text() + ".+").setPatternOptions(QRegularExpression::CaseInsensitiveOption),0);
+	int varIndex = selectedVariableVaules.indexOf(QRegularExpression(ui->list_variables->currentItem()->text() + ".+", QRegularExpression::CaseInsensitiveOption),0);
 
         QListWidgetItem *valItem = new QListWidgetItem();
         valItem->setText(values[i]);
@@ -189,7 +193,10 @@ void radeon_profile::on_list_vaules_itemClicked(QListWidgetItem *item)
         if (ui->list_vaules->item(i)->checkState() == Qt::Checked)
             selectedValues.append(ui->list_vaules->item(i)->text());
 
-        int varIndex = selectedVariableVaules.indexOf(QRegExp(ui->list_variables->currentItem()->text()+".+",Qt::CaseInsensitive),0);
+        //int varIndex = selectedVariableVaules.indexOf(QRegularExpression(ui->list_variables->currentItem()->text()+".+",Qt::CaseInsensitive),0);
+        //int varIndex = selectedVariableVaules.indexOf(QRegularExpression(ui->list_variables->currentItem()->text() + ".+").setPatternOptions(QRegularExpression::CaseInsensitiveOption),0);
+	int varIndex = selectedVariableVaules.indexOf(QRegularExpression(ui->list_variables->currentItem()->text() + ".+", QRegularExpression::CaseInsensitiveOption),0);
+
         if (varIndex != -1)
             selectedVariableVaules.removeAt(varIndex);
 
@@ -261,7 +268,8 @@ void radeon_profile::on_btn_runExecProfile_clicked()
 
     QStringList variables;
     if (!item->text(ENV_SETTINGS).isEmpty()) {
-            variables = item->text(ENV_SETTINGS).split(' ',QString::SkipEmptyParts);
+            //variables = item->text(ENV_SETTINGS).split(' ',QString::SkipEmptyParts);
+            variables = item->text(ENV_SETTINGS).split(QChar::Space);
 
             for (int i = 0; i < variables.count(); i++) {
                 QString varible = variables[i].split('=')[0],

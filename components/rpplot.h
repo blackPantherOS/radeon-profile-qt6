@@ -5,11 +5,13 @@
 #define RPPLOT_H
 
 #include <QObject>
-#include <QtCharts>
 #include "globalStuff.h"
 #include <QDebug>
+#include <QtCharts>
 
+#if QT_VERSION <= 0x060000
 using namespace QtCharts;
+#endif
 
 class PlotManager;
 class RPPlot;

@@ -5,11 +5,13 @@
 #ifndef PUBLICSTUFF_H
 #define PUBLICSTUFF_H
 
+#include <QCoreApplication>
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QStringList>
 #include <QFile>
 #include <QMap>
+#include <QDebug>
 
 #define dpm_battery "battery"
 #define dpm_performance "performance"
@@ -393,29 +395,47 @@ struct GPUConstParams {
 
 class globalStuff {
 public:
-    static QStringList grabSystemInfo(const QString cmd) {
-        QProcess *p = new QProcess();
-        p->setProcessChannelMode(QProcess::MergedChannels);
+    static QStringList grabSystemInfo(const QString &cmd) {
+        printf("Running command: %s\n", cmd.toStdString().c_str());
 
-        p->start(cmd,QIODevice::ReadOnly);
-        p->waitForFinished();
+        FILE *pipe = popen(cmd.toStdString().c_str(), "r");
+        if (!pipe) {
+            printf("Failed to start process.\n");
+            return QStringList();
+        }
 
-        QString a = p->readAllStandardOutput();
-        delete p;
-        return a.split('\n');
+        char buffer[128];
+        QString output;
+        while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+            output += buffer;
+        }
+
+        pclose(pipe);
+
+        output = output.trimmed();
+        qDebug() << "Error executing command:" << output;
+        //printf("Command output: %s\n", output.toStdString().c_str());
+
+        return output.split('\n');
     }
 
-    static QStringList grabSystemInfo(const QString cmd, const QProcessEnvironment env) {
-        QProcess *p = new QProcess();
-        p->setProcessChannelMode(QProcess::MergedChannels);
-        p->setProcessEnvironment(env);
+    static QStringList grabSystemInfo(const QString &cmd, const QProcessEnvironment &env) {
+        QStringList output;
 
-        p->start(cmd,QIODevice::ReadOnly);
-        p->waitForFinished();
+        QProcess process;
+        process.setProcessChannelMode(QProcess::MergedChannels);
+        process.setProcessEnvironment(env);
+        process.start(cmd);
+        process.waitForFinished();
 
-        QString a = p->readAllStandardOutput();
-        delete p;
-        return a.split('\n');
+        if (process.exitCode() == 0) {
+            QByteArray result = process.readAllStandardOutput();
+            output = QString(result).split('\n', Qt::SkipEmptyParts);
+        } else {
+            qDebug() << "Error executing command:" << cmd;
+        }
+
+        return output;
     }
 
     static ValueUnit getUnitFomValueId(ValueID id) {
