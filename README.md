@@ -1,7 +1,9 @@
-Simple application to read current clocks of ATi Radeon cards (xf86-video-ati, xf86-video-amdgpu).
+# Radeon-Profile-Qt6
+Simple Qt6 application to read current clocks of ATi Radeon cards (xf86-video-ati, xf86-video-amdgpu driver).
 
-# xf86-video-ati and xf86-video-amdgpu  driver
-Install and run radeon-profile-daemon (https://github.com/marazmista/radeon-profile-daemon) for using this app as normal user. Otherwise app need to be run with root privilages for changing power profiles (and clocks readings sometimes). You can add `username ALL = NOPASSWD: /usr/bin/radeon-profile` to your `/etc/sudoers`. Here is tip for run app as normal user but involves change permissions to system files: http://bit.ly/1dvQMhS
+# Requires: 
+(Qt6 version rewrite in progress!)
+Install Qt5 version and run radeon-profile-daemon (https://github.com/marazmista/radeon-profile-daemon) for using this app as normal user. Otherwise app need to be run with root privilages for changing power profiles (and clocks readings sometimes). You can add `username ALL = NOPASSWD: /usr/bin/radeon-profile` to your `/etc/sudoers`. Here is tip for run app as normal user but involves change permissions to system files: http://bit.ly/1dvQMhS
 
 # Functionality
 
@@ -14,9 +16,11 @@ Install and run radeon-profile-daemon (https://github.com/marazmista/radeon-prof
 
 # Dependencies
 
-* Qt 5.6<= (qt5-base and qt5-charts) (On Debian/Ubuntu: `qt5-default libqt5charts5-dev`)
+* Qt 6 >= (qt6-base and qt6-charts) 
+ /On Redhat based distro: `qt6-qtbase-devel qt6-qtcharts-devel`
+ /On Debian/Ubuntu: `qt6-default libqt5charts6-dev`/
 * libxrandr
-* libdrm (for amdgpu, 2.4.79<=, more recent, the better)
+* libdrm >= 2.6.116 (for amdgpu, more recent, the better)
 * recent kernel (for amdgpu 4.12<=, more recent, the better)
 * radeon card
 
@@ -26,14 +30,14 @@ For full functionality:
 * xrandr - connected displays
 
 # Install on blackPanther OS
+Automatic driver, daemon, application install method:
 ```
 installing radeon-profile
 ```
 
-
-# Installation
+# Other Installation method
 ### Ubuntu 
-Available for Ubuntu from PPA [stable](https://launchpad.net/~radeon-profile/+archive/ubuntu/stable) and [git develop](https://launchpad.net/~radeon-profile/+archive/ubuntu/radeon-profile) repository
+Available Qt5 version for Ubuntu from PPA [stable](https://launchpad.net/~radeon-profile/+archive/ubuntu/stable) and [git develop](https://launchpad.net/~radeon-profile/+archive/ubuntu/radeon-profile) repository
 
 Add in terminal commands:
 
@@ -67,19 +71,19 @@ For Ubuntu 2x.xx, qt5-charts isn't available:
 * Make a `qt5opt.conf` in `/usr/lib/x86_64-linux-gnu/qtchooser/` containing:
 
 ```
-/opt/Qt5.9.1/5.9.1/gcc_64/bin
-/opt/Qt5.9.1/5.9.1
+/opt/Qt6.6.0/6.6.0/gcc_64/bin
+/opt/Qt6.6.0/6.6.0
 ```
-### Arch Linux
-* AUR package: https://aur.archlinux.org/packages/radeon-profile-git/
+### Arch Linux 
+* AUR Qt5 package : https://aur.archlinux.org/packages/radeon-profile-git/
 * System daemon AUR package: https://aur.archlinux.org/packages/radeon-profile-daemon-git/
-# Links
+# Old Links
 
 * System daemon: https://github.com/marazmista/radeon-profile-daemon
 * Sort of official thread: http://phoronix.com/forums/showthread.php?83602-radeon-profile-tool-for-changing-profiles-and-monitoring-some-GPU-parameters
 * New icon created by Charles K Barcza <kbarcza@blackpanther.hu> 
 
-# Screenshot
+# Qt6 Screenshot
 
 Main screen
 ![Main screen](radeon-profile/extra/radeon-profile-qt6.png)
