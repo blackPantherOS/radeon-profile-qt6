@@ -34,7 +34,6 @@ Automatic driver, daemon, application install method:
 ```
 installing radeon-profile
 ```
-
 # Other Installation method
 ### Ubuntu 
 Available Qt5 version for Ubuntu from PPA [stable](https://launchpad.net/~radeon-profile/+archive/ubuntu/stable) and [git develop](https://launchpad.net/~radeon-profile/+archive/ubuntu/radeon-profile) repository
@@ -65,10 +64,10 @@ make
 
 The resulting binary is `./target/radeon-profile`
 
-For Ubuntu 2x.xx, qt5-charts isn't available:
+For Ubuntu 2x.xx, qt6-charts isn't available:
 * Use `qtchooser -l` to list available profiles
 * Use `qmake -qt=[profile from qtchooser]` to specify Qt root or download and install a Qt bundle from https://www.qt.io/download-open-source/#section-2
-* Make a `qt5opt.conf` in `/usr/lib/x86_64-linux-gnu/qtchooser/` containing:
+* Make a `qt6opt.conf` in `/usr/lib/x86_64-linux-gnu/qtchooser/` containing:
 
 ```
 /opt/Qt6.6.0/6.6.0/gcc_64/bin
