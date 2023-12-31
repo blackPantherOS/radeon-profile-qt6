@@ -80,11 +80,15 @@ For Ubuntu 2x.xx, qt6-charts isn't available:
 
 * System daemon: https://github.com/marazmista/radeon-profile-daemon
 * Sort of official thread: http://phoronix.com/forums/showthread.php?83602-radeon-profile-tool-for-changing-profiles-and-monitoring-some-GPU-parameters
-* New icon created by Charles K Barcza <kbarcza@blackpanther.hu> 
+
+# New icon
+ 
+* New icon plan created by Charles K Barcza <kbarcza@blackpanther.hu> 
+<img src="extra/radeon-profile.png" width="100">
 
 # Qt6 Screenshot
 
 Main screen
-![Main screen](radeon-profile/extra/radeon-profile-qt6.png)
-
-[More screenshots](http://imgur.com/a/DMRr9)
+![Main screen](extra/radeon-profile-qt6.png)
+[More Qt6 screenshots](extra/)
+[More Qt5 screenshots](http://imgur.com/a/DMRr9)
