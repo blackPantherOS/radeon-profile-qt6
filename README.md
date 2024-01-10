@@ -2,8 +2,7 @@
 Simple Qt6 application to read current clocks of ATi Radeon cards (xf86-video-ati, xf86-video-amdgpu driver).
 
 # Requires: 
-(Qt6 version rewrite in progress!)
-Install Qt5 version and run radeon-profile-daemon (https://github.com/marazmista/radeon-profile-daemon) for using this app as normal user. Otherwise app need to be run with root privilages for changing power profiles (and clocks readings sometimes). You can add `username ALL = NOPASSWD: /usr/bin/radeon-profile` to your `/etc/sudoers`. Here is tip for run app as normal user but involves change permissions to system files: http://bit.ly/1dvQMhS
+Install Qt6 version and run radeon-profile-daemon (*radeon-profile: https://github.com/blackPantherOS/radeon-profile-daemon) for using this app as normal user. Otherwise app need to be run with root privilages for changing power profiles (and clocks readings sometimes). You can add `username ALL = NOPASSWD: /usr/bin/radeon-profile` to your `/etc/sudoers`. Here is tip for run app as normal user but involves change permissions to system files: http://bit.ly/1dvQMhS /This not requires under blackPanther OS, the normal rpm install autoconfig works/
 
 # Functionality
 
@@ -18,7 +17,7 @@ Install Qt5 version and run radeon-profile-daemon (https://github.com/marazmista
 
 * Qt 6 >= (qt6-base and qt6-charts) 
  /On Redhat based distro: `qt6-qtbase-devel qt6-qtcharts-devel`
- /On Debian/Ubuntu: `qt6-default libqt5charts6-dev`/
+ /On Debian/Ubuntu: `qt6-default libqt6charts6-dev`/
 * libxrandr
 * libdrm >= 2.6.116 (for amdgpu, more recent, the better)
 * recent kernel (for amdgpu 4.12<=, more recent, the better)
